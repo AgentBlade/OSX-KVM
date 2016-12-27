@@ -17,7 +17,40 @@
 # Network device "-device e1000-82545em" can be replaced with "-device vmxnet3"
 # for possibly better performance.
 
-qemu-system-x86_64 -enable-kvm -m 8192 -cpu Penryn,kvm=off,vendor=GenuineIntel \
+up="up"
+
+if [ -e /sys/class/net/tap0/operstate ] && [ -e /sys/class/net/virbr0/operstate ] ; then       #check for interfaces existence
+
+        tap0=$(cat /sys/class/net/tap0/operstate)
+        virbr0=$(cat /sys/class/net/virbr0/operstate)
+
+        if [[ "$tap0" != "$up" ]] && [[ "$virbr0" != "$up" ]] ; then                            #if they do and are inactive we start them (-s)
+
+                echo 'Root privileges are needed.'
+                su -c "./virtints.sh -s"
+
+                else
+
+                        if [[ "$tap0" == "$up" ]] && [[ "$virbr0" == "$up" ]] ; then            #jump at qemu if already active
+
+                                echo "Starting qemu..."
+                                sleep 1
+
+                        fi
+        fi
+
+else                                                                                            #the interfaces do not exist so we create and activate them (-c) 
+
+        if [[ "$EUID" -ne 0 ]] ; then
+                echo 'Root privileges are needed.'
+                su -c "./virtints.sh -c"
+        fi
+
+fi
+
+
+
+qemu-system-x86_64 -enable-kvm -m 4096 -cpu Penryn,kvm=off,vendor=GenuineIntel \
 	  -machine pc-q35-2.4 \
 	  -smp 4,cores=2 \
 	  -usb -device usb-kbd -device usb-mouse \
