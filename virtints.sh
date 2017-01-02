@@ -5,6 +5,9 @@ if [[ "$EUID" -ne 0 ]] ; then
 	exit
 fi
 
+systemctl start libvirtd.service		#yeah, needs verification
+systemctl start libvirt-guests.service		#but's 2:03 am, i'm just assuming that you know how to manage systemd
+
 if [[ $1 == "-c" ]] ; then
 
 	echo 'Creating tap0 interface...'
